@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CodexBar",
+  "version": "0.1.0",
+  "identifier": "dev.codexbar.windowsmvp",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{
+      "label": "main",
+      "title": "CodexBar",
+      "width": 368,
+      "height": 560,
+      "minWidth": 350,
+      "minHeight": 480,
+      "resizable": false,
+      "decorations": false,
+      "transparent": true,
+      "center": true
+    }],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.png", "icons/icon.ico"]
+  }
+}
