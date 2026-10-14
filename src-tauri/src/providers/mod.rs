@@ -28,6 +28,20 @@ pub(crate) fn number(value: Option<&Value>) -> f64 {
         .unwrap_or(0.0)
 }
 
+pub(crate) fn safe_error_body(body: &str, secrets: &[&str]) -> String {
+    let redacted = secrets
+        .iter()
+        .filter(|secret| !secret.is_empty())
+        .fold(body.to_owned(), |text, secret| {
+            text.replace(secret, "[已隐藏]")
+        });
+    let compact = redacted.split_whitespace().collect::<Vec<_>>().join(" ");
+    if compact.is_empty() {
+        return "响应正文为空".into();
+    }
+    compact.chars().take(240).collect()
+}
+
 /// 两个 fetch 共用的错误兜底：Ok 直接返回；Err 时按 `needs_login_pred`
 /// 把错误归类为 `needs_login` 或 `error`，并填入 provider/错误信息。
 pub(crate) fn provider_or_error(

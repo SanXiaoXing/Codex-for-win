@@ -1,7 +1,7 @@
 use crate::{
     credentials::{read_secret, TRAE_AUTH_KEY, TRAE_DEVICE_ID_KEY},
     model::{Credits, ProviderUsage, UsageMetric, UsageWindow},
-    providers::{now, provider_or_error},
+    providers::{now, number, provider_or_error, safe_error_body},
 };
 use reqwest::Client;
 use serde_json::Value;
@@ -106,20 +106,6 @@ fn parse_entitlement(body: &Value) -> Result<ProviderUsage, String> {
     })
 }
 
-fn safe_error_body(body: &str, secrets: &[&str]) -> String {
-    let redacted = secrets
-        .iter()
-        .filter(|secret| !secret.is_empty())
-        .fold(body.to_owned(), |text, secret| {
-            text.replace(secret, "[已隐藏]")
-        });
-    let compact = redacted.split_whitespace().collect::<Vec<_>>().join(" ");
-    if compact.is_empty() {
-        return "响应正文为空".into();
-    }
-    compact.chars().take(240).collect()
-}
-
 fn object_keys(value: &Value) -> String {
     value
         .as_object()
@@ -132,10 +118,6 @@ fn object_keys(value: &Value) -> String {
                 .join(", ")
         })
         .unwrap_or_else(|| "非对象".into())
-}
-
-fn number(value: Option<&Value>) -> f64 {
-    value.and_then(as_number).unwrap_or(0.0)
 }
 
 fn as_number(value: &Value) -> Option<f64> {

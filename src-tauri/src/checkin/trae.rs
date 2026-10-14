@@ -1,3 +1,4 @@
+use crate::providers::safe_error_body;
 use reqwest::Client;
 use serde_json::Value;
 
@@ -122,20 +123,6 @@ fn checkin_result_message(body: &Value) -> Result<String, String> {
     }
 }
 
-fn safe_error_body(body: &str, secrets: &[&str]) -> String {
-    let redacted = secrets
-        .iter()
-        .filter(|secret| !secret.is_empty())
-        .fold(body.to_owned(), |text, secret| {
-            text.replace(secret, "[已隐藏]")
-        });
-    let compact = redacted.split_whitespace().collect::<Vec<_>>().join(" ");
-    if compact.is_empty() {
-        return "响应正文为空".into();
-    }
-    compact.chars().take(240).collect()
-}
-
 fn as_number(value: &Value) -> Option<f64> {
     value
         .as_f64()
@@ -144,7 +131,7 @@ fn as_number(value: &Value) -> Option<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::{checkin_result_message, safe_error_body};
+    use super::checkin_result_message;
     use serde_json::json;
 
     #[test]
@@ -163,16 +150,5 @@ mod tests {
     fn reports_checkin_business_errors() {
         let result = checkin_result_message(&json!({"code": 9074, "message": "稍后再试"}));
         assert!(result.unwrap_err().contains("稍后再试"));
-    }
-
-    #[test]
-    fn redacts_secrets_from_checkin_errors() {
-        assert_eq!(
-            safe_error_body(
-                "request failed secret-token device-123",
-                &["secret-token", "device-123"]
-            ),
-            "request failed [已隐藏] [已隐藏]"
-        );
     }
 }
