@@ -1,0 +1,65 @@
+/* 毛玻璃主面板 */
+.glass {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--window-radius);
+  border: 1px solid rgba(255, 255, 255, .32);
+  background: var(--material);
+  backdrop-filter: blur(32px) saturate(165%) brightness(1.03);
+  -webkit-backdrop-filter: blur(32px) saturate(165%) brightness(1.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22);
+  overflow: hidden;
+}
+/* 原生窗口负责外轮廓形变；内容保持原尺寸，不随窗口缩放或换行。 */
+.mode-transition { position: relative; border-radius: 0; background: #eef1ff; pointer-events: none; }
+.mode-transition .glass {
+  position: absolute; inset: 0 auto auto 0; width: 368px; height: 560px;
+  z-index: 1; flex: none; will-change: opacity, transform;
+}
+.morph-surface {
+  position: absolute; inset: 0;
+  background: linear-gradient(165deg, #2c3547 0%, #1f2530 100%);
+  opacity: 0; transition: opacity 240ms var(--ease-out);
+}
+.morph-ball {
+  position: absolute; top: 50%; left: 50%; z-index: 2;
+  width: 60px; height: 60px; transform: translate(-50%, -50%);
+  opacity: 0; transition: opacity 120ms var(--ease-out);
+}
+.to-panel .glass { opacity: 0; transform: translateY(6px); }
+.to-panel .morph-ball, .to-panel .morph-surface { opacity: 1; }
+.to-panel.is-running .glass {
+  opacity: 1; transform: translateY(0);
+  transition: opacity 160ms var(--ease-out) 100ms, transform 180ms var(--ease-out) 80ms;
+}
+.to-panel.is-running .morph-ball { opacity: 0; transition-duration: 80ms; }
+.to-panel.is-running .morph-surface { opacity: 0; transition-duration: 280ms; }
+.to-ball.is-running .glass {
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 100ms var(--ease-out), transform 140ms var(--ease-out);
+}
+.to-ball.is-running .morph-surface { opacity: 1; }
+.to-ball.is-running .morph-ball { opacity: 1; transition-delay: 120ms; }
+/* ===== 顶栏：整行可拖动，按钮除外 ===== */
+.app-header {
+  height: 50px;
+  padding: 0 10px 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, .22);
+}
+.brand { pointer-events: none; display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; letter-spacing: -.2px; }
+.brand-icon { width: 25px; height: 25px; border-radius: 8px; background: transparent; color: #555f70; display: grid; place-items: center; }
+.header-actions { display: flex; gap: 4px; }
+.icon-button {
+  width: 29px; height: 29px; border: 0; background: transparent; border-radius: 8px;
+  color: #6f7288; display: grid; place-items: center; cursor: pointer;
+  transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out);
+}
+.icon-button:hover { background: rgba(255, 255, 255, .75); color: var(--ink); }
+.close-button:hover { background: rgba(224, 106, 88, .16); color: #b04a38; }
+.is-loading svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+

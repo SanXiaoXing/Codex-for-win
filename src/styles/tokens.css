@@ -1,0 +1,42 @@
+/* CodexBar 用量面板使用 Windows Acrylic 原生背景材质；页面本身保持透明，
+   让桌面内容经过系统模糊后透进窗口。 */
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, 'Segoe UI Variable', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+  color: #262838;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #262a30;
+  --material: rgba(242, 244, 247, .78);
+  --muted: #666d78;
+  --accent: #2563c9;
+  --good: #3f9d6f;
+  --warn: #c07a45;
+  --line: rgba(38, 40, 56, .055);
+  --mono: Consolas, monospace;
+  --window-radius: 12px;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+}
+* { box-sizing: border-box; }
+button { font: inherit; -webkit-tap-highlight-color: transparent; transition: transform 180ms var(--ease-out), opacity 180ms var(--ease-out); }
+button:active:not(:disabled) { transform: scale(.97); }
+button:focus-visible, .ball:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+button:disabled { cursor: wait; }
+:root { font-optical-sizing: auto; font-variant-numeric: tabular-nums; }
+
+/* 让透明 WebView 的裁切轮廓与 Windows 窗口圆角对齐。 */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--window-radius);
+}
+
+body {
+  margin: 0;
+  background: transparent;
+}
+html, #root { background: transparent; }
+
+.shell { height: 100%; padding: 0; display: flex; overflow: hidden; border-radius: var(--window-radius); }
+

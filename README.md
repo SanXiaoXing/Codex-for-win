@@ -1,6 +1,6 @@
 # CodexBar Windows MVP
 
-A Windows tray app that shows Codex subscription quota and WorkBuddy monthly credits.
+A Windows tray app that shows Codex subscription quota, WorkBuddy credits, and TRAE token usage.
 
 ## Requirements
 
@@ -18,10 +18,35 @@ Codex usage is read from `%USERPROFILE%\.codex\auth.json` (or `%CODEX_HOME%\auth
 
 For WorkBuddy, sign in at `workbuddy.cn` in Chrome. In DevTools Network, select a request to `/profile/plans-usage`, then copy its `Cookie` and `User-Agent` request headers into Settings. The session is stored in the Windows Credential Manager. If the session expires or returns HTTP 401, copy fresh headers from the same browser request.
 
-The app refreshes every five minutes. The tray icon shows Codex's 5-hour usage percentage; hover it to see both Codex windows and WorkBuddy's remaining credits. Use the tray icon's context menu to open the panel, refresh, or quit.
+For TRAE personal usage, open [the TRAE usage dashboard](https://www.trae.cn/dashboard#usage), then use DevTools Network to find a `query_user_usage` request and paste its complete `Authorization` header value into Settings. The app stores it in Windows Credential Manager and queries TRAE's dashboard endpoint directly. This is an undocumented personal-account endpoint and may change; TRAE Enterprise provides a separately documented admin OpenAPI.
+
+The app refreshes every five minutes. The tray icon shows Codex's 5-hour usage percentage; hover it to see Codex, WorkBuddy, and today's TRAE usage. Use the tray icon's context menu to open the panel, refresh, or quit.
 
 ## Build
 
 ```powershell
 npm run tauri -- build
 ```
+
+## Frontend structure
+
+- `src/domain`: shared usage types and provider metadata.
+- `src/features/usage`: Codex, WorkBuddy, and TRAE usage views.
+- `src/features/floating`: floating usage indicator.
+- `src/features/settings`: credentials and appearance dialog.
+- `src/features/shell`: app toolbar, provider switcher, and context menu.
+- `src/hooks`: usage loading, floating window behavior, and appearance preferences.
+- `src/components`: small shared UI pieces.
+- `src/lib`: formatting and derived usage values.
+- `src/styles`: tokens and feature-specific styles; `src/styles.css` gathers them.
+
+
+## Rust structure
+
+- `src-tauri/src/app.rs`: Tauri builder, managed state, and command registration.
+- `src-tauri/src/model.rs`: usage data types and initial state.
+- `src-tauri/src/commands.rs`: frontend-facing Tauri commands.
+- `src-tauri/src/providers/`: Codex, WorkBuddy, and TRAE requests plus refresh coordination.
+- `src-tauri/src/credentials.rs`: Windows Credential Manager storage for provider credentials.
+- `src-tauri/src/window.rs`: Acrylic setup, floating-window sizing, and native window transitions.
+- `src-tauri/src/tray.rs`: tray menu, events, and tooltip text.

@@ -1,0 +1,40 @@
+/* ===== 边缘悬浮球（吸边模式） =====
+   窗口大小与 .ball-circle 严格一致：让球填满整个 WebView 区域，
+   避免出现未被覆盖的"死区"——DWM 会在死区上画方形拖动阴影/拖动指示器，
+   拖动后看起来就像球"展开"了一小块。 */
+.ball-shell { border-radius: 0; background: transparent; }
+.ball { width: 100%; height: 100%; display: grid; place-items: center; cursor: pointer; user-select: none; touch-action: none; }
+.ball-circle {
+  position: relative;
+  width: 100%; height: 100%; border-radius: 50%;
+  background: linear-gradient(165deg, #2c3547 0%, #1f2530 100%);
+  box-shadow: 0 8px 22px rgba(18, 22, 38, .48), inset 0 1px 0 rgba(255, 255, 255, .16);
+  display: grid; place-items: center;
+  transition: transform 180ms cubic-bezier(.23, 1, .32, 1);
+}
+.ball:active .ball-circle { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) {
+  .ball:hover .ball-circle { transform: scale(.98); }
+  .ball:active .ball-circle { transform: scale(.96); }
+}
+.ball-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ball-ring .track { fill: none; stroke: rgba(255, 255, 255, .12); stroke-width: 4; }
+.ball-ring .value {
+  fill: none; stroke: #62a0ff; stroke-width: 4; stroke-linecap: round;
+
+}
+.ball-circle.low .ball-ring .value { stroke: #e5a94e; }
+.ball-circle.critical .ball-ring .value { stroke: #e2684f; }
+.ball-circle.unknown .ball-ring .value { stroke: #7d8698; }
+.ball-core { position: relative; display: grid; place-items: center; text-align: center; color: #f2f6ff; }
+.ball-core strong { font-size: 16px; font-weight: 800; line-height: 1; letter-spacing: -.5px; }
+.ball-core strong i { font-style: normal; font-size: 9.5px; font-weight: 700; margin-left: 1px; opacity: .7; }
+.ball-core .ball-empty { font-size: 14px; color: #aab4c6; }
+.ball-core span { margin-top: 3px; font-size: 8px; font-weight: 700; letter-spacing: 1.2px; color: rgba(242, 246, 255, .55); text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-transition .glass { transform: none; transition: opacity 100ms ease; }
+  .mode-transition .morph-ball, .mode-transition .morph-surface { transition: opacity 100ms ease; }
+  .ball:hover .ball-circle, .ball:active .ball-circle { transform: none; }
+}
+
