@@ -14,7 +14,6 @@ pub(crate) struct UsageWindow {
 pub(crate) struct Credits {
     pub(crate) remaining: f64,
     pub(crate) total: f64,
-    pub(crate) unit: String,
     pub(crate) plan: Option<String>,
 }
 
@@ -28,15 +27,6 @@ pub(crate) struct ProviderUsage {
     pub(crate) credits: Option<Credits>,
     pub(crate) updated_at: Option<i64>,
     pub(crate) error: Option<String>,
-    pub(crate) metrics: Vec<UsageMetric>,
-}
-
-#[derive(Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct UsageMetric {
-    pub(crate) label: String,
-    pub(crate) value: f64,
-    pub(crate) unit: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -45,7 +35,6 @@ pub(crate) struct UsageSnapshot {
     pub(crate) codex: ProviderUsage,
     pub(crate) workbuddy: ProviderUsage,
     pub(crate) trae: ProviderUsage,
-    pub(crate) refreshed_at: Option<i64>,
 }
 
 pub(crate) struct UsageState(pub(crate) Mutex<UsageSnapshot>);

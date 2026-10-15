@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { ProviderUsage } from "../../domain/usage";
-import { EmptyState, Meter } from "../../components/usage/UsagePrimitives";
+import { Meter } from "../../components/usage/UsagePrimitives";
 
 export function WorkBuddyUsage({ data, onOpenSettings }: { data: ProviderUsage; onOpenSettings: () => void }) {
   const remaining = data.credits?.remaining ?? 0;
@@ -10,7 +10,7 @@ export function WorkBuddyUsage({ data, onOpenSettings }: { data: ProviderUsage; 
   if (!data.credits) {
     return (
       <div className="empty-wrap">
-        <EmptyState text={data.error || "添加 WorkBuddy 浏览器会话以读取积分"} />
+        <div className="empty">{data.error || "添加 WorkBuddy 浏览器会话以读取积分"}</div>
         {settingsButton}
       </div>
     );

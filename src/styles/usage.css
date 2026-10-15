@@ -27,13 +27,7 @@
 .empty { min-height: 96px; display: grid; place-items: center; text-align: center; padding: 0 10px; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .link-button { display: inline-flex; align-items: center; gap: 3px; border: 0; background: transparent; color: var(--accent); font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 2px 0; }
 .link-button:hover { text-decoration: underline; }
-.trae-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-.trae-metric { display: grid; gap: 4px; padding: 12px; border: 1px solid rgba(38, 40, 56, .07); border-radius: 10px; background: rgba(255, 255, 255, .52); }
-.trae-metric span, .trae-metric small { color: var(--muted); font-size: 11px; }
-.trae-metric strong { color: var(--ink); font-family: var(--mono); font-size: 19px; font-weight: 650; letter-spacing: -.5px; }
 .trae-dashboard-link { margin-top: 18px; }
-.trae-checkin-button { justify-content: center; margin-top: 14px; }
-.checkin-feedback { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: center; overflow-wrap: anywhere; }
 .spin { animation: spin 900ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

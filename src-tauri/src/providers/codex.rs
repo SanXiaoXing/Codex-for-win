@@ -114,7 +114,6 @@ pub(crate) async fn fetch_codex(client: &Client) -> ProviderUsage {
             credits: None,
             updated_at: Some(now()),
             error: None,
-            metrics: Vec::new(),
         })
     }
     .await;

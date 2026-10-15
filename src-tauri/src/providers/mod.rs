@@ -90,7 +90,6 @@ pub(crate) async fn refresh(app: &AppHandle) -> UsageSnapshot {
         codex,
         workbuddy,
         trae,
-        refreshed_at: Some(now()),
     };
     if let Some(state) = app.try_state::<UsageState>() {
         if let Ok(mut current) = state.0.lock() {

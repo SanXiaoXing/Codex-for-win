@@ -27,10 +27,8 @@ pub(crate) fn tray_tooltip(snapshot: &UsageSnapshot) -> String {
         .unwrap_or_else(|| "WorkBuddy 未连接".into());
     let trae = snapshot
         .trae
-        .metrics
-        .iter()
-        .find(|metric| metric.label == "已消耗")
-        .and_then(|_| snapshot.trae.credits.as_ref())
+        .credits
+        .as_ref()
         .map(|credits| format!("TRAE 剩余 {:.0} 积分", credits.remaining))
         .unwrap_or_else(|| "TRAE 未连接".into());
     if codex.is_empty() {

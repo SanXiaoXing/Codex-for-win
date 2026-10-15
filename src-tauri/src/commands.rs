@@ -1,13 +1,9 @@
 use crate::{
-    credentials::{
-        write_secret, TRAE_AUTH_KEY, TRAE_DEVICE_ID_KEY, WORKBUDDY_COOKIE_KEY, WORKBUDDY_UA_KEY,
-    },
+    credentials::{write_secret, TRAE_AUTH_KEY, WORKBUDDY_COOKIE_KEY, WORKBUDDY_UA_KEY},
     model::{initial, UsageSnapshot, UsageState},
     providers,
 };
 use tauri::{AppHandle, State};
-
-pub(crate) mod trae_checkin;
 
 #[tauri::command]
 pub(crate) fn get_usage(state: State<'_, UsageState>) -> UsageSnapshot {
@@ -34,10 +30,7 @@ pub(crate) fn save_workbuddy_session(cookie: String, user_agent: String) -> Resu
 }
 
 #[tauri::command]
-pub(crate) fn save_trae_authorization(
-    authorization: String,
-    device_id: String,
-) -> Result<(), String> {
+pub(crate) fn save_trae_authorization(authorization: String) -> Result<(), String> {
     let value = authorization.trim();
     if value.is_empty() {
         return Err("Authorization 不能为空".into());
@@ -45,8 +38,7 @@ pub(crate) fn save_trae_authorization(
     if !value.starts_with("Cloud-IDE-JWT ") && !value.starts_with("Bearer ") {
         return Err("请粘贴完整 Authorization 值（Cloud-IDE-JWT 或 Bearer）".into());
     }
-    write_secret(TRAE_AUTH_KEY, value)?;
-    write_secret(TRAE_DEVICE_ID_KEY, device_id.trim())
+    write_secret(TRAE_AUTH_KEY, value)
 }
 
 #[tauri::command]

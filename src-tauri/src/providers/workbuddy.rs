@@ -67,12 +67,10 @@ pub(crate) async fn fetch_workbuddy(client: &Client) -> ProviderUsage {
             credits: Some(Credits {
                 remaining,
                 total,
-                unit: "积分".into(),
                 plan,
             }),
             updated_at: Some(now()),
             error: None,
-            metrics: Vec::new(),
         })
     }
     .await;

@@ -8,6 +8,10 @@ use std::sync::{atomic::AtomicBool, Mutex};
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .manage(UsageState(Mutex::new(initial())))
         .manage(SavedPosition(Mutex::new(None)))
         .manage(AtomicBool::new(false))
@@ -28,8 +32,6 @@ pub fn run() {
             commands::refresh_usage,
             commands::save_workbuddy_session,
             commands::save_trae_authorization,
-            commands::trae_checkin::save_trae_checkin_credentials,
-            commands::trae_checkin::trae_checkin,
             commands::open_trae_dashboard,
             crate::window::set_ball_mode
         ])

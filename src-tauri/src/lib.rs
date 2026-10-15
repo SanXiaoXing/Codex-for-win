@@ -1,5 +1,4 @@
 mod app;
-mod checkin;
 mod commands;
 mod credentials;
 mod model;

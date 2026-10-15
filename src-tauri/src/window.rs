@@ -15,10 +15,6 @@ pub(crate) struct SavedPosition(pub(crate) Mutex<Option<tauri::PhysicalPosition<
 const BALL_LOGICAL: f64 = 60.0;
 const BALL_EDGE_GAP: f64 = 4.0;
 
-fn clamp_i32(value: i32, low: i32, high: i32) -> i32 {
-    value.max(low).min(high.max(low))
-}
-
 /// Win11：让无装饰透明窗口的 DWM 合成面圆角与 CSS `--window-radius` 对齐，
 /// 否则 Acrylic 背衬会以方角铺满，圆角处露出方形亚克力边缘。
 /// Win10 / 旧版本调用返回错误 HRESULT，忽略即可（仅 Win11 22000+ 支持）。
@@ -249,13 +245,13 @@ pub(crate) async fn set_ball_mode(
         let center_x = position.x + size.width as i32 / 2;
         let center_y = position.y + size.height as i32 / 2;
         let (x, y) = match side.as_deref() {
-            Some("left") => (mx + gap, clamp_i32(center_y - ball / 2, my, my + mh - ball)),
+            Some("left") => (mx + gap, (center_y - ball / 2).clamp(my, my + mh - ball)),
             Some("right") => (
                 mx + mw - ball - gap,
-                clamp_i32(center_y - ball / 2, my, my + mh - ball),
+                (center_y - ball / 2).clamp(my, my + mh - ball),
             ),
             // 默认吸附到顶部边缘，保留窗口当前的横向位置
-            _ => (clamp_i32(center_x - ball / 2, mx, mx + mw - ball), my + gap),
+            _ => ((center_x - ball / 2).clamp(mx, mx + mw - ball), my + gap),
         };
         morph_window(
             window.clone(),
@@ -298,8 +294,8 @@ pub(crate) async fn set_ball_mode(
                             _ => (current.x + ball - width, current.y + (ball - height) / 2),
                         };
                         tauri::PhysicalPosition::new(
-                            clamp_i32(x, mx, mx + mw - width),
-                            clamp_i32(y, my, my + mh - height),
+                            (x).clamp(mx, mx + mw - width),
+                            (y).clamp(my, my + mh - height),
                         )
                     }
                     None => saved_position.unwrap_or(current),

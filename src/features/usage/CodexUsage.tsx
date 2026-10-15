@@ -1,12 +1,12 @@
 import type { ProviderUsage } from "../../domain/usage";
 import { clampPercent, formatReset } from "../../lib/usage-format";
-import { EmptyState, Meter } from "../../components/usage/UsagePrimitives";
+import { Meter } from "../../components/usage/UsagePrimitives";
 
 export function CodexUsage({ data, onOpenSettings }: { data: ProviderUsage; onOpenSettings: () => void }) {
   if (!data.windows.length) {
     return (
       <div className="empty-wrap">
-        <EmptyState text={data.error || "登录 Codex CLI 后会自动读取用量"} />
+        <div className="empty">{data.error || "登录 Codex CLI 后会自动读取用量"}</div>
         <button className="link-button" onClick={onOpenSettings}>连接帮助</button>
       </div>
     );

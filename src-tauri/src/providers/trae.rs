@@ -1,6 +1,6 @@
 use crate::{
-    credentials::{read_secret, TRAE_AUTH_KEY, TRAE_DEVICE_ID_KEY},
-    model::{Credits, ProviderUsage, UsageMetric, UsageWindow},
+    credentials::{read_secret, TRAE_AUTH_KEY},
+    model::{Credits, ProviderUsage, UsageWindow},
     providers::{now, number, provider_or_error, safe_error_body},
 };
 use reqwest::Client;
@@ -12,14 +12,10 @@ pub(crate) async fn fetch_trae(client: &Client) -> ProviderUsage {
     let result = async {
         let authorization =
             read_secret(TRAE_AUTH_KEY).map_err(|_| "请在设置中添加 TRAE 授权值".to_string())?;
-        let device_id = read_secret(TRAE_DEVICE_ID_KEY).unwrap_or_default();
-        let mut request = client
+        let request = client
             .post(TRAE_ENTITLEMENT_URL)
             .header(reqwest::header::AUTHORIZATION, authorization.trim())
             .json(&serde_json::json!({}));
-        if !device_id.trim().is_empty() {
-            request = request.header("x-device-id", device_id.trim());
-        }
         let response = request
             .send()
             .await
@@ -35,7 +31,7 @@ pub(crate) async fn fetch_trae(client: &Client) -> ProviderUsage {
         if !status.is_success() {
             return Err(format!(
                 "TRAE 服务返回 HTTP {status}：{}",
-                safe_error_body(&response_text, &[authorization.trim(), device_id.trim()])
+                safe_error_body(&response_text, &[authorization.trim()])
             ));
         }
         let body: Value = serde_json::from_str(&response_text)
@@ -93,16 +89,10 @@ fn parse_entitlement(body: &Value) -> Result<ProviderUsage, String> {
         credits: Some(Credits {
             remaining,
             total,
-            unit: "积分".into(),
             plan: Some("当前周期".into()),
         }),
         updated_at: Some(updated_at),
         error: None,
-        metrics: vec![UsageMetric {
-            label: "已消耗".into(),
-            value: consumed,
-            unit: "积分".into(),
-        }],
     })
 }
 
@@ -146,7 +136,6 @@ mod tests {
         assert!((credits.remaining - 1028.36).abs() < 0.0001);
         assert_eq!(credits.total, 1900.0);
         assert_eq!(usage.windows[0].used_percent, 46);
-        assert_eq!(usage.metrics[0].value, 871.64);
     }
 
     #[test]
@@ -169,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn error_details_hide_authorization_and_device_id() {
+    fn error_details_hide_authorization() {
         assert_eq!(
             safe_error_body(
                 "bad request secret-token device-123",

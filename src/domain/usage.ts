@@ -4,12 +4,11 @@ export type ProviderUsage = {
   status: "connected" | "needs_login" | "error";
   account?: string | null;
   windows: UsageWindow[];
-  credits?: { remaining: number; total: number; unit: string; plan?: string | null } | null;
+  credits?: { remaining: number; total: number; plan?: string | null } | null;
   updatedAt?: number | null;
   error?: string | null;
-  metrics?: { label: string; value: number; unit: string }[];
 };
-export type UsageSnapshot = { codex: ProviderUsage; workbuddy: ProviderUsage; trae: ProviderUsage; refreshedAt?: number | null };
+export type UsageSnapshot = { codex: ProviderUsage; workbuddy: ProviderUsage; trae: ProviderUsage };
 export type TabKey = "codex" | "workbuddy" | "trae";
 export type BallSide = "left" | "right" | "top";
 

@@ -4,8 +4,6 @@ const SERVICE: &str = "codexbar-windows-mvp";
 pub(crate) const WORKBUDDY_COOKIE_KEY: &str = "workbuddy-cookie";
 pub(crate) const WORKBUDDY_UA_KEY: &str = "workbuddy-user-agent";
 pub(crate) const TRAE_AUTH_KEY: &str = "trae-authorization";
-pub(crate) const TRAE_DEVICE_ID_KEY: &str = "trae-device-id";
-pub(crate) const TRAE_CHECKIN_SESSION_KEY: &str = "trae-checkin-session";
 
 /// Windows 凭据库单条凭据上限约 2560 字符（UTF-16），WorkBuddy 的整串 Cookie
 /// 通常超过该限制，因此按块拆分为多条凭据存储：`{key}-part0..N-1` + `{key}-count`。

@@ -31,10 +31,6 @@ export default function App() {
   const [cookie, setCookie] = useState("");
   const [userAgent, setUserAgent] = useState("");
   const [traeAuthorization, setTraeAuthorization] = useState("");
-  const [traeDeviceId, setTraeDeviceId] = useState("");
-  const [traeCheckinSession, setTraeCheckinSession] = useState("");
-  const [checkinLoading, setCheckinLoading] = useState(false);
-  const [checkinMessage, setCheckinMessage] = useState("");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const ballDrag = useRef({ pointerId: -1, startX: 0, startY: 0, dragging: false });
@@ -88,33 +84,10 @@ export default function App() {
   const saveTraeAuthorization = async () => {
     setSaveError("");
     try {
-      await invoke("save_trae_authorization", { authorization: traeAuthorization.trim(), deviceId: traeDeviceId.trim() });
-      setSaved(true); setTraeAuthorization(""); setTraeDeviceId(""); await refresh();
+      await invoke("save_trae_authorization", { authorization: traeAuthorization.trim() });
+      setSaved(true); setTraeAuthorization(""); await refresh();
       window.setTimeout(() => setSaved(false), 2200);
     } catch (error) { setSaveError(String(error)); }
-  };
-
-  const saveTraeCheckinCredentials = async () => {
-    setSaveError("");
-    try {
-      await invoke("save_trae_checkin_credentials", { session: traeCheckinSession.trim(), deviceId: traeDeviceId.trim() });
-      setSaved(true); setTraeCheckinSession(""); setTraeDeviceId("");
-      window.setTimeout(() => setSaved(false), 2200);
-    } catch (error) { setSaveError(String(error)); }
-  };
-
-  const checkInTrae = async () => {
-    if (checkinLoading) return;
-    setCheckinLoading(true); setCheckinMessage("");
-    try {
-      const message = await invoke<string>("trae_checkin");
-      setCheckinMessage(message);
-      await refresh();
-    } catch (error) {
-      setCheckinMessage(String(error));
-    } finally {
-      setCheckinLoading(false);
-    }
   };
 
   // ===== 悬浮球手势：位移 > 6px 视为拖动（移动窗口），否则视为点击（展开面板） =====
@@ -182,7 +155,7 @@ export default function App() {
             ? <CodexUsage data={usage.codex} onOpenSettings={() => setSettingsOpen(true)} />
             : tab === "workbuddy"
               ? <WorkBuddyUsage data={usage.workbuddy} onOpenSettings={() => setSettingsOpen(true)} />
-              : <TraeUsage data={usage.trae} checkinLoading={checkinLoading} checkinMessage={checkinMessage} onCheckIn={() => void checkInTrae()} onOpenSettings={() => setSettingsOpen(true)} />}
+              : <TraeUsage data={usage.trae} onOpenSettings={() => setSettingsOpen(true)} />}
         </div>
 
       </div>
@@ -195,21 +168,16 @@ export default function App() {
         cookie={cookie}
         userAgent={userAgent}
         traeAuthorization={traeAuthorization}
-        traeDeviceId={traeDeviceId}
-        traeCheckinSession={traeCheckinSession}
         saved={saved}
         saveError={saveError}
         preferences={preferences}
         setCookie={setCookie}
         setUserAgent={setUserAgent}
         setTraeAuthorization={setTraeAuthorization}
-        setTraeDeviceId={setTraeDeviceId}
-        setTraeCheckinSession={setTraeCheckinSession}
         setPreferences={setPreferences}
         onClose={() => setSettingsOpen(false)}
         onSaveWorkbuddy={() => void saveCookie()}
         onSaveTrae={() => void saveTraeAuthorization()}
-        onSaveTraeCheckin={() => void saveTraeCheckinCredentials()}
       />
       <ContextMenu
         position={menu}
