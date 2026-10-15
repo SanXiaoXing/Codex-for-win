@@ -30,9 +30,9 @@ export function TraeUsage({ data, checkinLoading, checkinMessage, onCheckIn, onO
     <div className="account-line">{data.account}</div>
     <section className="usage-section no-line" aria-label="TRAE 积分用量">
       <h2>当前周期</h2>
-      <div className="credits-total"><strong>{creditNumber.format(used)}</strong><span>/ {creditNumber.format(total)} 积分</span></div>
+      <div className="credits-total"><strong>{creditNumber.format(remaining)}</strong><span>/ {creditNumber.format(total)} 积分</span></div>
       <Meter percent={remainingPercent} />
-      <div className="meter-row"><span>已用 {Math.round(usedPercent)}%</span><span className="muted">剩余 {creditNumber.format(remaining)} 积分</span></div>
+      <div className="meter-row"><span>剩余 {Math.round(remainingPercent)}%</span><span className="muted">已用 {creditNumber.format(used)} 积分</span></div>
     </section>
     {checkinButton}
     {feedback}

@@ -30,12 +30,13 @@ pub(crate) fn tray_tooltip(snapshot: &UsageSnapshot) -> String {
         .metrics
         .iter()
         .find(|metric| metric.label == "已消耗")
-        .map(|metric| format!("TRAE 已用 {:.0} 积分", metric.value))
+        .and_then(|_| snapshot.trae.credits.as_ref())
+        .map(|credits| format!("TRAE 剩余 {:.0} 积分", credits.remaining))
         .unwrap_or_else(|| "TRAE 未连接".into());
     if codex.is_empty() {
-        format!("CodexBar · Codex 未连接 · {workbuddy} · {trae}")
+        format!("Win CodexBar · Codex 未连接 · {workbuddy} · {trae}")
     } else {
-        format!("CodexBar · {} · {workbuddy} · {trae}", codex.join(" / "))
+        format!("Win CodexBar · {} · {workbuddy} · {trae}", codex.join(" / "))
     }
 }
 
@@ -47,7 +48,7 @@ pub(crate) fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Err
     let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
     TrayIconBuilder::with_id("usage-tray")
         .icon(icon)
-        .tooltip("CodexBar · AI 用量")
+        .tooltip("Win CodexBar · AI 用量")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {

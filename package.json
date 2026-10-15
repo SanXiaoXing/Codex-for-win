@@ -1,7 +1,8 @@
 {
-  "name": "codexbar-windows-mvp",
+  "name": "win-codexbar",
   "private": true,
   "version": "0.1.0",
+  "author": "SanXiaoXing",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",

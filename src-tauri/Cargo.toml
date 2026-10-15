@@ -1,8 +1,8 @@
 [package]
-name = "codexbar-windows-mvp"
+name = "codexbar-windows"
 version = "0.1.0"
 description = "Windows tray usage monitor for Codex and WorkBuddy"
-authors = ["CodexBar"]
+authors = ["SanXiaoXing"]
 edition = "2021"
 
 [lib]

@@ -34,5 +34,5 @@ pub fn run() {
             crate::window::set_ball_mode
         ])
         .run(tauri::generate_context!())
-        .expect("error while running CodexBar");
+        .expect("error while running Win CodexBar");
 }

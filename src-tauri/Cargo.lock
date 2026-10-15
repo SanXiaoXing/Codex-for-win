@@ -352,7 +352,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "codexbar-windows-mvp"
+name = "codexbar-windows"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",

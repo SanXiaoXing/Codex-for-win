@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "CodexBar",
+  "productName": "Win CodexBar",
   "version": "0.1.0",
   "identifier": "dev.codexbar.windowsmvp",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [{
       "label": "main",
-      "title": "CodexBar",
+      "title": "Win CodexBar",
       "width": 368,
       "height": 560,
       "minWidth": 350,
