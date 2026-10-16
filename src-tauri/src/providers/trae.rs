@@ -3,6 +3,7 @@ use crate::{
     model::{Credits, ProviderUsage, UsageWindow},
     providers::{now, number, provider_or_error, safe_error_body},
 };
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::{header, Client};
 use serde_json::Value;
 use std::sync::Mutex;
@@ -33,36 +34,15 @@ pub(crate) async fn fetch_trae(client: &Client) -> ProviderUsage {
 /// 推荐路径：浏览器会话 Cookie → 换取 8 小时 JWT → 查询积分。
 /// 每轮刷新都会检查 JWT 剩余有效期，不足则自动重新换取；只要浏览器会话未失效就无需手工重贴。
 async fn fetch_with_cookie(client: &Client, cookie: &str) -> Result<ProviderUsage, String> {
-    let mut attempt = 0;
-    loop {
-        let token = session_token(client, cookie).await?;
-        match fetch_entitlement(client, &token).await {
-            Ok(mut usage) => {
-                usage.account = Some(match jwt_expires_at(&token) {
-                    Some(expires_at) => format!("TRAE 积分额度 · {}", remaining_label(expires_at)),
-                    None => "TRAE 积分额度".into(),
-                });
-                return Ok(usage);
-            }
-            Err(error) if attempt == 0 && error.contains("授权已失效") => {
-                forget_minted_token();
-                attempt += 1;
-            }
-            Err(error) => return Err(error),
-        }
-    }
+    let token = session_token(client, cookie).await?;
+    fetch_entitlement(client, &token).await
 }
 
 /// 备用路径：使用设置里粘贴的 Authorization 值（8 小时后必然失效，需手工重贴）。
 async fn fetch_with_authorization(client: &Client) -> Result<ProviderUsage, String> {
     let stored = read_secret(TRAE_AUTH_KEY)
         .map_err(|_| "请在设置中添加 TRAE 浏览器 Cookie，或粘贴 Authorization 值".to_string())?;
-    let mut usage = fetch_entitlement(client, stored.trim()).await?;
-    usage.account = Some(match jwt_expires_at(&stored) {
-        Some(expires_at) => format!("TRAE 积分额度 · {}", remaining_label(expires_at)),
-        None => "TRAE 积分额度".into(),
-    });
-    Ok(usage)
+    fetch_entitlement(client, stored.trim()).await
 }
 
 async fn session_token(client: &Client, cookie: &str) -> Result<String, String> {
@@ -205,55 +185,18 @@ fn parse_entitlement(body: &Value) -> Result<ProviderUsage, String> {
             total,
             plan: Some("当前周期".into()),
         }),
+        metrics: Vec::new(),
         updated_at: Some(updated_at),
         error: None,
     })
 }
 
-/// 取 JWT 的 exp（不做签名校验，仅用于展示与续期判断）。
+/// 取 JWT 的 exp（不做签名校验，仅用于判断是否值得复用缓存的令牌）。
 fn jwt_expires_at(authorization: &str) -> Option<i64> {
-    let raw = authorization.trim().split_whitespace().last()?;
+    let raw = authorization.split_whitespace().last()?;
     let segment = raw.split('.').nth(1)?;
-    let payload: Value = serde_json::from_slice(&base64_url_decode(segment)?).ok()?;
+    let payload: Value = serde_json::from_slice(&URL_SAFE_NO_PAD.decode(segment).ok()?).ok()?;
     payload.get("exp")?.as_i64()
-}
-
-fn base64_url_decode(input: &str) -> Option<Vec<u8>> {
-    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    let mut lookup = [255u8; 256];
-    for (index, byte) in TABLE.iter().enumerate() {
-        lookup[*byte as usize] = index as u8;
-    }
-    let mut output = Vec::with_capacity(input.len() / 4 * 3);
-    let mut buffer = 0u32;
-    let mut bits = 0u32;
-    for byte in input.bytes() {
-        if byte == b'=' {
-            break;
-        }
-        let value = lookup[byte as usize];
-        if value == 255 {
-            return None;
-        }
-        buffer = (buffer << 6) | u32::from(value);
-        bits += 6;
-        if bits >= 8 {
-            bits -= 8;
-            output.push((buffer >> bits) as u8);
-        }
-    }
-    Some(output)
-}
-
-fn remaining_label(expires_at: i64) -> String {
-    let seconds = expires_at - now();
-    if seconds <= 0 {
-        "授权已过期".into()
-    } else if seconds >= 3600 {
-        format!("授权剩余 {:.1} 小时", seconds as f64 / 3600.0)
-    } else {
-        format!("授权剩余 {} 分钟", (seconds / 60).max(1))
-    }
 }
 
 fn object_keys(value: &Value) -> String {
@@ -278,7 +221,7 @@ fn as_number(value: &Value) -> Option<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::{base64_url_decode, jwt_expires_at, parse_entitlement, safe_error_body};
+    use super::{jwt_expires_at, parse_entitlement, safe_error_body};
     use serde_json::json;
 
     #[test]
@@ -337,18 +280,5 @@ mod tests {
             Some(1_700_000_000)
         );
         assert_eq!(jwt_expires_at("not-a-jwt"), None);
-    }
-
-    #[test]
-    fn base64_url_decode_handles_padding_and_rejects_garbage() {
-        assert_eq!(
-            base64_url_decode("eyJhIjoxfQ").as_deref(),
-            Some(&b"{\"a\":1}"[..])
-        );
-        assert_eq!(
-            base64_url_decode("eyJhIjoxfQ==").as_deref(),
-            Some(&b"{\"a\":1}"[..])
-        );
-        assert_eq!(base64_url_decode("bad*value"), None);
     }
 }

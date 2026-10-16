@@ -8,14 +8,18 @@ import { AppToolbar } from "./features/shell/AppToolbar";
 import { ProviderTabs } from "./features/shell/ProviderTabs";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { TabKey } from "./domain/usage";
+import { tabs } from "./domain/usage";
 import { shortTime, ballInfo } from "./lib/usage-format";
 import { BallVisual } from "./features/floating/BallVisual";
 import { CodexUsage } from "./features/usage/CodexUsage";
 import { WorkBuddyUsage } from "./features/usage/WorkBuddyUsage";
 import { TraeUsage } from "./features/usage/TraeUsage";
+import { AtomCodeUsage } from "./features/usage/AtomCodeUsage";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
+
+const tabKeys = tabs.map((item) => item.key);
 
 export default function App() {
   const [tab, setTab] = useState<TabKey>("codex");
@@ -44,7 +48,8 @@ export default function App() {
       if (event.key === ",") { event.preventDefault(); setSettingsOpen(true); }
       if (settingsOpen || /INPUT|TEXTAREA/.test((event.target as HTMLElement).tagName)) return;
       if (event.key.toLowerCase() === "r") { event.preventDefault(); void refresh(); }
-      if (["1", "2", "3"].includes(event.key)) { event.preventDefault(); setTab((["codex", "workbuddy", "trae"] as TabKey[])[Number(event.key) - 1]); }
+      const index = Number(event.key) - 1;
+      if (tabKeys[index]) { event.preventDefault(); setTab(tabKeys[index]); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -162,7 +167,9 @@ export default function App() {
             ? <CodexUsage data={usage.codex} onOpenSettings={() => setSettingsOpen(true)} />
             : tab === "workbuddy"
               ? <WorkBuddyUsage data={usage.workbuddy} onOpenSettings={() => setSettingsOpen(true)} />
-              : <TraeUsage data={usage.trae} onOpenSettings={() => setSettingsOpen(true)} />}
+              : tab === "trae"
+                ? <TraeUsage data={usage.trae} onOpenSettings={() => setSettingsOpen(true)} />
+                : <AtomCodeUsage data={usage.atomcode} onOpenSettings={() => setSettingsOpen(true)} />}
         </div>
 
       </div>
@@ -195,7 +202,7 @@ export default function App() {
         menuRef={menuRef}
         onDismiss={() => setMenu(null)}
         onRefresh={() => void refresh()}
-        onSwitch={() => setTab((["codex", "workbuddy", "trae"] as TabKey[])[((["codex", "workbuddy", "trae"] as TabKey[]).indexOf(tab) + 1) % 3])}
+        onSwitch={() => setTab(tabKeys[(tabKeys.indexOf(tab) + 1) % tabKeys.length])}
         onSettings={() => setSettingsOpen(true)}
         onBall={() => void enterBall("right")}
       />

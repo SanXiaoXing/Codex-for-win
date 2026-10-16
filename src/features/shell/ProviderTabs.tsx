@@ -10,7 +10,7 @@ export function ProviderTabs({ active, usage, onChange }: Props) {
         onKeyDown={(event) => {
           if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
             event.preventDefault();
-            const keys: TabKey[] = ["codex", "workbuddy", "trae"];
+            const keys: TabKey[] = tabs.map((item) => item.key);
             const next = event.key === "Home" ? keys[0] : event.key === "End" ? keys[keys.length - 1] : keys[(keys.indexOf(active) + (event.key === "ArrowRight" ? 1 : keys.length - 1)) % keys.length];
             onChange(next);
             document.getElementById(`tab-${next}`)?.focus();

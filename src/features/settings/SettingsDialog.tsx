@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import type { AppearancePreferences } from "../../hooks/useAppearancePreferences";
 
@@ -43,7 +44,7 @@ export function SettingsDialog({ open, dialogRef, cookie, userAgent, traeAuthori
     <div className={`modal-backdrop ${open ? "is-open" : ""}`} aria-hidden={!open} {...(!open ? { inert: "" } : {})} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section ref={dialogRef} className="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <header className="settings-header"><h2 id="settings-title">连接与外观</h2><button className="icon-button" aria-label="关闭设置" onClick={onClose}><X size={16} /></button></header>
-        <p className="settings-intro">Codex 登录 CLI 后自动连接。WorkBuddy：在浏览器登录 workbuddy.cn，然后从开发者工具的网络请求中复制 Cookie 和 User-Agent。会话凭据保存在 Windows 凭据库中。</p>
+        <p className="settings-intro">Codex 登录 CLI 后自动连接；WorkBuddy 与 TRAE 从浏览器开发者工具的网络请求中复制凭据；AtomCode 登录 CLI 后自动读取本地登录态。凭据保存在 Windows 凭据库中（AtomCode 沿用 CLI 自身的登录态文件）。</p>
         <label className="field-label" htmlFor="cookie">Cookie</label>
         <textarea id="cookie" value={cookie} onChange={(event) => setCookie(event.target.value)} placeholder="粘贴请求头中的 Cookie 内容" rows={4} spellCheck={false} />
         <label className="field-label" htmlFor="ua">User-Agent</label>
@@ -63,6 +64,10 @@ export function SettingsDialog({ open, dialogRef, cookie, userAgent, traeAuthori
           <p className="settings-help">该值实测只有 8 小时有效期，到期必须重新粘贴；Cookie 填了就优先走自动续期。</p>
         </details>
         {saveError && <div className="form-error">{saveError}</div>}
+        <div className="settings-divider" />
+        <p className="settings-section-title">AtomCode 用量</p>
+        <p className="settings-help">无需粘贴凭据：安装并登录 AtomCode CLI 后，CodexBar 自动读取 <code>%USERPROFILE%\.atomcode\auth.toml</code> 的登录态，展示 CodingPlan 滚动窗口用量、窗口重置时间与套餐有效期；并代为完成每日签到（CodingPlan 权益领取），结果附在账号行上。登录过期时在终端执行一次 <code>atomcode login</code> 即可。</p>
+        <div className="settings-inline-action"><button className="secondary-button" onClick={() => void invoke("open_atomcode_page")}>打开 CodingPlan 页</button></div>
         <fieldset className="appearance-options"><legend>启动与显示</legend>
           <label><input type="checkbox" checked={autostart} onChange={toggleAutostart} />开机自启动</label>
           <label><input type="checkbox" checked={!!preferences.motion} onChange={(event) => setPreferences({ ...preferences, motion: event.target.checked })} />减少动态效果</label>

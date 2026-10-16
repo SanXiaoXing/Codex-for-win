@@ -31,10 +31,25 @@ pub(crate) fn tray_tooltip(snapshot: &UsageSnapshot) -> String {
         .as_ref()
         .map(|credits| format!("TRAE 剩余 {:.0} 积分", credits.remaining))
         .unwrap_or_else(|| "TRAE 未连接".into());
-    if codex.is_empty() {
-        format!("Win CodexBar · Codex 未连接 · {workbuddy} · {trae}")
+    let atomcode = if snapshot.atomcode.status != "connected" {
+        "AtomCode 未连接".to_string()
     } else {
-        format!("Win CodexBar · {} · {workbuddy} · {trae}", codex.join(" / "))
+        match snapshot.atomcode.windows.first() {
+            Some(window) => format!(
+                "AtomCode {} 剩余 {}%",
+                window.label,
+                100_u8.saturating_sub(window.used_percent)
+            ),
+            None => "AtomCode 已连接".into(),
+        }
+    };
+    if codex.is_empty() {
+        format!("Win CodexBar · Codex 未连接 · {workbuddy} · {trae} · {atomcode}")
+    } else {
+        format!(
+            "Win CodexBar · {} · {workbuddy} · {trae} · {atomcode}",
+            codex.join(" / ")
+        )
     }
 }
 

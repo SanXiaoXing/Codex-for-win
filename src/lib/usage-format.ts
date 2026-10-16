@@ -30,6 +30,11 @@ export function ballInfo(tab: TabKey, usage: UsageSnapshot): { remaining: number
       : null;
     return { remaining, mark: "TRAE", tone: toneOf(remaining) };
   }
+  if (tab === "atomcode") {
+    const primary = usage.atomcode.windows[0];
+    const remaining = primary ? 100 - clampPercent(primary.usedPercent) : null;
+    return { remaining, mark: "ATOM", tone: toneOf(remaining) };
+  }
   const credits = usage.workbuddy.credits;
   const remaining = credits && credits.total > 0 ? Math.round((credits.remaining / credits.total) * 100) : null;
   return { remaining, mark: "WB", tone: toneOf(remaining) };

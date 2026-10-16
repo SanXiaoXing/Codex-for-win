@@ -112,6 +112,7 @@ pub(crate) async fn fetch_codex(client: &Client) -> ProviderUsage {
             account: account_name,
             windows,
             credits: None,
+            metrics: Vec::new(),
             updated_at: Some(now()),
             error: None,
         })

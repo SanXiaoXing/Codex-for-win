@@ -319,12 +319,12 @@ pub(crate) async fn set_ball_mode(
         )
         .await?;
         window
-            .set_size(tauri::LogicalSize::new(368.0, 560.0))
+            .set_size(tauri::LogicalSize::new(404.0, 560.0))
             .map_err(err)?;
         #[cfg(target_os = "windows")]
         set_ball_region(&window, false)?;
         window
-            .set_min_size(Some(tauri::LogicalSize::new(350.0, 480.0)))
+            .set_min_size(Some(tauri::LogicalSize::new(380.0, 480.0)))
             .map_err(err)?;
         window.set_always_on_top(false).map_err(err)?;
         window.set_skip_taskbar(false).map_err(err)?;

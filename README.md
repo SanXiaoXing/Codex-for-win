@@ -1,6 +1,6 @@
 # CodexBar Windows MVP
 
-A Windows tray app that shows Codex subscription quota, WorkBuddy credits, and TRAE token usage.
+A Windows tray app that shows Codex subscription quota, WorkBuddy credits, TRAE token usage, and AtomCode CodingPlan usage.
 
 ## Requirements
 
@@ -22,7 +22,9 @@ For TRAE personal usage, open [the TRAE usage dashboard](https://www.trae.cn/das
 
 Pasting the raw `Authorization` header (find a `query_user_usage` request and copy its complete value) still works as a fallback, but that JWT is only valid for 8 hours. The longer-lived credentials TRAE issues are not usable here: the 7-day JWT in `%USERPROFILE%\.trae-cn\trae-jwt-token` is rejected by the billing endpoints with `401 code 1001`, and the 166-day OAuth `RefreshToken` is bound to a device key pair stored in TRAE's encrypted local store. Both endpoints are undocumented personal-account interfaces and may change; TRAE Enterprise provides a separately documented admin OpenAPI.
 
-The app refreshes every five minutes. The tray icon shows Codex's 5-hour usage percentage; hover it to see Codex, WorkBuddy, and today's TRAE usage. Use the tray icon's context menu to open the panel, refresh, or quit.
+AtomCode needs no credential pasting: the tab reads the CLI's own login state from `%USERPROFILE%\.atomcode\auth.toml` and calls `GET https://api.atomgit.com/api/v5/coding-plan/status-v2` with `Authorization: Bearer <access_token>`. It shows the CodingPlan rolling-window usage (used percent plus window reset time) and the plan validity (`expires_at` / `remaining_days`). It also performs the daily CodingPlan check-in for you: `POST /coding-plan/claim-v2` with the `plan_type` reported by `status-v2`, at most once per day and immediately again if the plan has lapsed. The outcome is appended to the account line (`今日已签到` / `签到成功` / `签到失败`). If the login state expires, run `atomcode login` once.
+
+The app refreshes every five minutes. The tray icon shows Codex's 5-hour usage percentage; hover it to see Codex, WorkBuddy, TRAE, and AtomCode usage. Use the tray icon's context menu to open the panel, refresh, or quit.
 
 ## Build
 

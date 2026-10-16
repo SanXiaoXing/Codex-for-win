@@ -66,7 +66,15 @@ pub(crate) fn save_trae_authorization(authorization: String) -> Result<(), Strin
 
 #[tauri::command]
 pub(crate) fn open_trae_dashboard() -> Result<(), String> {
-    let url = "https://www.trae.cn/dashboard#usage";
+    open_url("https://www.trae.cn/dashboard#usage")
+}
+
+#[tauri::command]
+pub(crate) fn open_atomcode_page() -> Result<(), String> {
+    open_url("https://ai.atomgit.com/serverless-api")
+}
+
+fn open_url(url: &str) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     let result = std::process::Command::new("rundll32")
         .args(["url.dll,FileProtocolHandler", url])

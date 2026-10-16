@@ -5,9 +5,11 @@ use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager};
 
+mod atomcode;
 mod codex;
 pub(crate) mod trae;
 mod workbuddy;
+use atomcode::fetch_atomcode;
 use codex::fetch_codex;
 use trae::fetch_trae;
 use workbuddy::fetch_workbuddy;
@@ -72,7 +74,9 @@ pub(crate) async fn refresh(app: &AppHandle) -> UsageSnapshot {
                 || host == "workbuddy.cn"
                 || host.ends_with(".workbuddy.cn")
                 || host == "trae.cn"
-                || host.ends_with(".trae.cn");
+                || host.ends_with(".trae.cn")
+                || host == "atomgit.com"
+                || host.ends_with(".atomgit.com");
             if allowed {
                 attempt.follow()
             } else {
@@ -81,15 +85,17 @@ pub(crate) async fn refresh(app: &AppHandle) -> UsageSnapshot {
         }))
         .build()
         .unwrap_or_else(|_| Client::new());
-    let (codex, workbuddy, trae) = tokio::join!(
+    let (codex, workbuddy, trae, atomcode) = tokio::join!(
         fetch_codex(&client),
         fetch_workbuddy(&client),
-        fetch_trae(&client)
+        fetch_trae(&client),
+        fetch_atomcode(&client)
     );
     let snapshot = UsageSnapshot {
         codex,
         workbuddy,
         trae,
+        atomcode,
     };
     if let Some(state) = app.try_state::<UsageState>() {
         if let Ok(mut current) = state.0.lock() {

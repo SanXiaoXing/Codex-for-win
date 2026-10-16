@@ -69,6 +69,7 @@ pub(crate) async fn fetch_workbuddy(client: &Client) -> ProviderUsage {
                 total,
                 plan,
             }),
+            metrics: Vec::new(),
             updated_at: Some(now()),
             error: None,
         })
