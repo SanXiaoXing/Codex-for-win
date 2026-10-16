@@ -4,6 +4,9 @@ const SERVICE: &str = "codexbar-windows-mvp";
 pub(crate) const WORKBUDDY_COOKIE_KEY: &str = "workbuddy-cookie";
 pub(crate) const WORKBUDDY_UA_KEY: &str = "workbuddy-user-agent";
 pub(crate) const TRAE_AUTH_KEY: &str = "trae-authorization";
+/// TRAE 浏览器会话 Cookie：用于向 `GetUserToken` 换取 8 小时 JWT，实现自动续期。
+pub(crate) const TRAE_COOKIE_KEY: &str = "trae-cookie";
+pub(crate) const TRAE_UA_KEY: &str = "trae-user-agent";
 
 /// Windows 凭据库单条凭据上限约 2560 字符（UTF-16），WorkBuddy 的整串 Cookie
 /// 通常超过该限制，因此按块拆分为多条凭据存储：`{key}-part0..N-1` + `{key}-count`。
@@ -31,7 +34,7 @@ fn stored_part_count(key: &str) -> usize {
         .unwrap_or(0)
 }
 
-fn delete_secret(key: &str) {
+pub(crate) fn delete_secret(key: &str) {
     if let Ok(entry) = Entry::new(SERVICE, key) {
         let _ = entry.delete_credential();
     }

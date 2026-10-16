@@ -31,6 +31,7 @@ pub fn run() {
             commands::get_usage,
             commands::refresh_usage,
             commands::save_workbuddy_session,
+            commands::save_trae_session,
             commands::save_trae_authorization,
             commands::open_trae_dashboard,
             crate::window::set_ball_mode

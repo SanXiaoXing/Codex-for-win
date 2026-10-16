@@ -31,6 +31,8 @@ export default function App() {
   const [cookie, setCookie] = useState("");
   const [userAgent, setUserAgent] = useState("");
   const [traeAuthorization, setTraeAuthorization] = useState("");
+  const [traeCookie, setTraeCookie] = useState("");
+  const [traeUserAgent, setTraeUserAgent] = useState("");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const ballDrag = useRef({ pointerId: -1, startX: 0, startY: 0, dragging: false });
@@ -81,11 +83,16 @@ export default function App() {
     } catch (error) { setSaveError(String(error)); }
   };
 
-  const saveTraeAuthorization = async () => {
+  // TRAE：优先保存浏览器会话 Cookie（自动换票、免重贴），否则退回静态 Authorization。
+  const saveTrae = async () => {
     setSaveError("");
     try {
-      await invoke("save_trae_authorization", { authorization: traeAuthorization.trim() });
-      setSaved(true); setTraeAuthorization(""); await refresh();
+      if (traeCookie.trim()) {
+        await invoke("save_trae_session", { cookie: traeCookie.trim(), userAgent: traeUserAgent.trim() });
+      } else {
+        await invoke("save_trae_authorization", { authorization: traeAuthorization.trim() });
+      }
+      setSaved(true); setTraeCookie(""); setTraeUserAgent(""); setTraeAuthorization(""); await refresh();
       window.setTimeout(() => setSaved(false), 2200);
     } catch (error) { setSaveError(String(error)); }
   };
@@ -168,16 +175,20 @@ export default function App() {
         cookie={cookie}
         userAgent={userAgent}
         traeAuthorization={traeAuthorization}
+        traeCookie={traeCookie}
+        traeUserAgent={traeUserAgent}
         saved={saved}
         saveError={saveError}
         preferences={preferences}
         setCookie={setCookie}
         setUserAgent={setUserAgent}
         setTraeAuthorization={setTraeAuthorization}
+        setTraeCookie={setTraeCookie}
+        setTraeUserAgent={setTraeUserAgent}
         setPreferences={setPreferences}
         onClose={() => setSettingsOpen(false)}
         onSaveWorkbuddy={() => void saveCookie()}
-        onSaveTrae={() => void saveTraeAuthorization()}
+        onSaveTrae={() => void saveTrae()}
       />
       <ContextMenu
         position={menu}

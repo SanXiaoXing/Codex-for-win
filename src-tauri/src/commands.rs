@@ -1,5 +1,8 @@
 use crate::{
-    credentials::{write_secret, TRAE_AUTH_KEY, WORKBUDDY_COOKIE_KEY, WORKBUDDY_UA_KEY},
+    credentials::{
+        delete_secret, write_secret, TRAE_AUTH_KEY, TRAE_COOKIE_KEY, TRAE_UA_KEY,
+        WORKBUDDY_COOKIE_KEY, WORKBUDDY_UA_KEY,
+    },
     model::{initial, UsageSnapshot, UsageState},
     providers,
 };
@@ -29,6 +32,26 @@ pub(crate) fn save_workbuddy_session(cookie: String, user_agent: String) -> Resu
     Ok(())
 }
 
+/// 保存 TRAE 浏览器会话 Cookie（推荐）：CodexBar 用它定时换取 8 小时 JWT，实现自动续期。
+#[tauri::command]
+pub(crate) fn save_trae_session(cookie: String, user_agent: String) -> Result<(), String> {
+    if cookie.trim().is_empty() {
+        return Err("Cookie 不能为空".into());
+    }
+    if !cookie.contains('=') {
+        return Err("请粘贴完整 Cookie 内容（形如 a=b; c=d）".into());
+    }
+    write_secret(TRAE_COOKIE_KEY, cookie.trim())?;
+    if user_agent.trim().is_empty() {
+        // User-Agent 留空时清除旧值，查询时回落到内置浏览器 UA。
+        delete_secret(TRAE_UA_KEY);
+    } else {
+        write_secret(TRAE_UA_KEY, user_agent.trim())?;
+    }
+    Ok(())
+}
+
+/// 保存 TRAE 浏览器会话（旧的 Authorization 直填方式，作为备用）。
 #[tauri::command]
 pub(crate) fn save_trae_authorization(authorization: String) -> Result<(), String> {
     let value = authorization.trim();
