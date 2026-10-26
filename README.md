@@ -34,6 +34,10 @@ AtomCode connections prefer IPv6 when DNS returns both address families, with IP
 npm run tauri -- build
 ```
 
+## Website downloads
+
+The static page in `site/` reads the latest published GitHub Release from `SanXiaoXing/Codex-for-win`. Publish each stable version with its tag and attach a Windows x64 NSIS installer whose name contains `CodexBar`, `x64` (or `amd64`), and ends in `setup.exe`. The page displays that tag and links directly to the matching Release asset. The HTML also embeds the last known working installer and version, so downloads still work if the GitHub API is unavailable; update that fallback when publishing the site with a new version.
+
 ## Frontend structure
 
 - `src/domain`: shared usage types and provider metadata.
