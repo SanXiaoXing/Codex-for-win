@@ -26,6 +26,8 @@ AtomCode needs no credential pasting: the tab reads the CLI's own login state fr
 
 The app refreshes every five minutes. The tray icon shows Codex's 5-hour usage percentage; hover it to see Codex, WorkBuddy, TRAE, and AtomCode usage. Use the tray icon's context menu to open the panel, refresh, or quit.
 
+AtomCode connections prefer IPv6 when DNS returns both address families, with IPv4 as a fallback. This avoids TLS handshake failures on networks where the AtomGit IPv4 route is broken. To check both read-only usage endpoints with your local CLI login, run `cargo test --manifest-path src-tauri/Cargo.toml live_atomcode_status_and_usage_connect -- --ignored`.
+
 ## Build
 
 ```powershell

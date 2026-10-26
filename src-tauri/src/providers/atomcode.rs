@@ -25,14 +25,15 @@ const CLAIM_RETRY_SECS: i64 = 600;
 /// 最近一次签到尝试 (成功时间, 尝试时间)，用于决定本轮是否要签到。
 static LAST_CLAIM: Mutex<(Option<i64>, Option<i64>)> = Mutex::new((None, None));
 
-pub(crate) async fn fetch_atomcode(client: &Client) -> ProviderUsage {
+pub(crate) async fn fetch_atomcode() -> ProviderUsage {
     let result = async {
         let auth = read_auth()?;
-        let status = get_json(client, ATOMCODE_STATUS_PATH, &auth).await?;
+        let client = atomcode_client().await?;
+        let status = get_json(&client, ATOMCODE_STATUS_PATH, &auth).await?;
         // 明细接口偶尔会 401/超时，缺失时只少几行指标，不影响主数据展示。
-        let usage = get_json(client, ATOMCODE_USAGE_PATH, &auth).await.ok();
+        let usage = get_json(&client, ATOMCODE_USAGE_PATH, &auth).await.ok();
         let mut parsed = parse_status(&status, usage.as_ref(), auth.username.as_deref())?;
-        if let Some(note) = claim_daily(client, &auth, &status, usage.as_ref()).await {
+        if let Some(note) = claim_daily(&client, &auth, &status, usage.as_ref()).await {
             parsed.account = Some(match parsed.account {
                 Some(account) => format!("{account} · {note}"),
                 None => note,
@@ -45,6 +46,29 @@ pub(crate) async fn fetch_atomcode(client: &Client) -> ProviderUsage {
     provider_or_error("atomcode", result, |error| {
         error.contains("未找到") || error.contains("重新登录")
     })
+}
+
+async fn atomcode_client() -> Result<Client, String> {
+    let mut builder = Client::builder()
+        .timeout(std::time::Duration::from_secs(18))
+        .redirect(reqwest::redirect::Policy::none());
+    if let Ok(Ok(addresses)) = tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        tokio::net::lookup_host(("api.atomgit.com", 443)),
+    )
+    .await
+    {
+        let mut addresses: Vec<_> = addresses.collect();
+        // 某些代理/TUN 的 IPv4 路径会中断 TLS 握手；优先 IPv6，保留 IPv4 回退。
+        addresses.sort_by_key(|address| address.is_ipv4());
+        if !addresses.is_empty() {
+            builder = builder.resolve_to_addrs("api.atomgit.com", &addresses);
+        }
+    }
+    // 本机 DNS 不可用时仍允许客户端走代理，由代理解析源站地址。
+    builder
+        .build()
+        .map_err(|error| format!("AtomCode 连接初始化失败：{error}"))
 }
 
 /// 每日签到：把 status-v2 给出的 `plan_type` 提交给 claim-v2 领取当日权益。
@@ -346,6 +370,22 @@ fn as_number(value: &Value) -> Option<f64> {
 mod tests {
     use super::{claim_due, parse_status, plan_claimed_today};
     use serde_json::json;
+
+    /// 真实网络回归检查；只读取用量，不调用签到接口。
+    #[tokio::test]
+    #[ignore = "requires AtomCode login and access to api.atomgit.com"]
+    async fn live_atomcode_status_and_usage_connect() {
+        let auth = super::read_auth().expect("AtomCode login required");
+        let client = super::atomcode_client().await.unwrap();
+        let status = super::get_json(&client, super::ATOMCODE_STATUS_PATH, &auth)
+            .await
+            .unwrap();
+        let usage = super::get_json(&client, super::ATOMCODE_USAGE_PATH, &auth)
+            .await
+            .unwrap();
+        let parsed = parse_status(&status, Some(&usage), auth.username.as_deref()).unwrap();
+        assert_eq!(parsed.status, "connected");
+    }
 
     #[test]
     fn parses_window_plan_and_usage_metrics() {

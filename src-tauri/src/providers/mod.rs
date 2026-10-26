@@ -89,7 +89,7 @@ pub(crate) async fn refresh(app: &AppHandle) -> UsageSnapshot {
         fetch_codex(&client),
         fetch_workbuddy(&client),
         fetch_trae(&client),
-        fetch_atomcode(&client)
+        fetch_atomcode()
     );
     let snapshot = UsageSnapshot {
         codex,
