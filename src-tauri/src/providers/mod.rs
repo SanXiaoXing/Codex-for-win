@@ -1,5 +1,4 @@
 use crate::model::{ProviderUsage, UsageSnapshot, UsageState};
-use crate::tray::tray_tooltip;
 use reqwest::Client;
 use serde_json::Value;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -102,9 +101,7 @@ pub(crate) async fn refresh(app: &AppHandle) -> UsageSnapshot {
             *current = snapshot.clone();
         }
     }
-    if let Some(tray) = app.tray_by_id("usage-tray") {
-        let _ = tray.set_tooltip(Some(tray_tooltip(&snapshot)));
-    }
+    crate::tray::update(app, &snapshot);
     let _ = app.emit("usage-updated", snapshot.clone());
     snapshot
 }

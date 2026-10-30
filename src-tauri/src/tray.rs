@@ -1,56 +1,164 @@
-use crate::model::UsageSnapshot;
+use crate::model::{ProviderUsage, UsageSnapshot};
 use crate::providers;
+use crate::tray_icon::{render_quota_icon, ICON_SIZE};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager,
 };
 
-pub(crate) fn tray_tooltip(snapshot: &UsageSnapshot) -> String {
-    let codex = snapshot
-        .codex
-        .windows
-        .iter()
-        .map(|window| {
-            format!(
-                "{} 剩余 {}%",
-                window.label,
-                100_u8.saturating_sub(window.used_percent)
-            )
-        })
-        .collect::<Vec<_>>();
-    let workbuddy = snapshot
-        .workbuddy
-        .credits
-        .as_ref()
-        .map(|credits| format!("WorkBuddy {:.0} 积分", credits.remaining))
-        .unwrap_or_else(|| "WorkBuddy 未连接".into());
-    let trae = snapshot
-        .trae
-        .credits
-        .as_ref()
-        .map(|credits| format!("TRAE 剩余 {:.0} 积分", credits.remaining))
-        .unwrap_or_else(|| "TRAE 未连接".into());
-    let atomcode = if snapshot.atomcode.status != "connected" {
-        "AtomCode 未连接".to_string()
-    } else {
-        match snapshot.atomcode.windows.first() {
-            Some(window) => format!(
-                "AtomCode {} 剩余 {}%",
-                window.label,
-                100_u8.saturating_sub(window.used_percent)
-            ),
-            None => "AtomCode 已连接".into(),
+fn quota_levels(snapshot: &UsageSnapshot) -> [Option<u8>; 4] {
+    let window_remaining = |usage: &ProviderUsage| {
+        if usage.status != "connected" {
+            return None;
         }
+        usage
+            .windows
+            .iter()
+            .find(|window| window.label == "5 小时")
+            .or_else(|| usage.windows.first())
+            .map(|window| 100_u8.saturating_sub(window.used_percent))
     };
-    if codex.is_empty() {
-        format!("Win CodexBar · Codex 未连接 · {workbuddy} · {trae} · {atomcode}")
-    } else {
-        format!(
-            "Win CodexBar · {} · {workbuddy} · {trae} · {atomcode}",
-            codex.join(" / ")
-        )
+    let credit_remaining = |usage: &ProviderUsage| {
+        if usage.status != "connected" {
+            return None;
+        }
+        let credits = usage.credits.as_ref()?;
+        if !credits.remaining.is_finite() || !credits.total.is_finite() || credits.total <= 0.0 {
+            return None;
+        }
+        Some(((credits.remaining / credits.total).clamp(0.0, 1.0) * 100.0).round() as u8)
+    };
+    [
+        window_remaining(&snapshot.codex),
+        credit_remaining(&snapshot.workbuddy),
+        credit_remaining(&snapshot.trae),
+        window_remaining(&snapshot.atomcode),
+    ]
+}
+
+fn quota_image(snapshot: &UsageSnapshot) -> tauri::image::Image<'static> {
+    tauri::image::Image::new_owned(
+        render_quota_icon(quota_levels(snapshot)),
+        ICON_SIZE,
+        ICON_SIZE,
+    )
+}
+
+pub(crate) fn update(app: &tauri::AppHandle, snapshot: &UsageSnapshot) {
+    if let Some(tray) = app.tray_by_id("usage-tray") {
+        let _ = tray.set_icon(Some(quota_image(snapshot)));
+        let _ = tray.set_tooltip(Some(tray_tooltip(snapshot)));
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{Credits, ProviderUsage, UsageWindow};
+
+    #[test]
+    fn quota_order_matches_providers_and_prefers_codex_five_hour_window() {
+        let snapshot = UsageSnapshot {
+            codex: ProviderUsage {
+                status: "connected".into(),
+                windows: vec![
+                    UsageWindow {
+                        label: "每周".into(),
+                        used_percent: 90,
+                        ..Default::default()
+                    },
+                    UsageWindow {
+                        label: "5 小时".into(),
+                        used_percent: 18,
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            workbuddy: ProviderUsage {
+                status: "connected".into(),
+                credits: Some(Credits {
+                    remaining: 25.0,
+                    total: 100.0,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            trae: ProviderUsage {
+                status: "connected".into(),
+                credits: Some(Credits {
+                    remaining: 3.0,
+                    total: 10.0,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            atomcode: ProviderUsage {
+                status: "connected".into(),
+                windows: vec![UsageWindow {
+                    used_percent: 65,
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        };
+        assert_eq!(
+            quota_levels(&snapshot),
+            [Some(82), Some(25), Some(30), Some(35)]
+        );
+    }
+
+    #[test]
+    fn unknown_and_invalid_credits_do_not_look_like_full_batteries() {
+        let mut snapshot = crate::model::initial();
+        snapshot.codex.windows.push(UsageWindow {
+            used_percent: 0,
+            ..Default::default()
+        });
+        snapshot.workbuddy.status = "connected".into();
+        snapshot.workbuddy.credits = Some(Credits {
+            remaining: 50.0,
+            total: 0.0,
+            ..Default::default()
+        });
+        snapshot.trae.status = "connected".into();
+        snapshot.trae.credits = Some(Credits {
+            remaining: f64::NAN,
+            total: 100.0,
+            ..Default::default()
+        });
+        assert_eq!(quota_levels(&snapshot), [None; 4]);
+        snapshot.workbuddy.credits.as_mut().unwrap().total = 40.0;
+        snapshot.trae.credits.as_mut().unwrap().remaining = -10.0;
+        assert_eq!(quota_levels(&snapshot), [None, Some(100), Some(0), None]);
+    }
+}
+
+pub(crate) fn tray_tooltip(snapshot: &UsageSnapshot) -> String {
+    let mut tooltip = String::from("Win CodexBar · 剩余额度（顶部起顺时针）");
+    for ((name, usage), level) in [
+        ("Codex", &snapshot.codex),
+        ("WorkBuddy", &snapshot.workbuddy),
+        ("TRAE", &snapshot.trae),
+        ("AtomCode", &snapshot.atomcode),
+    ]
+    .into_iter()
+    .zip(quota_levels(snapshot))
+    {
+        let value = level
+            .map(|percent| format!("{percent}%"))
+            .unwrap_or_else(|| {
+                match usage.status.as_str() {
+                    "error" => "同步异常",
+                    "connected" => "暂无额度数据",
+                    _ => "未连接",
+                }
+                .into()
+            });
+        tooltip.push_str(&format!("\n{name}  {value}"));
+    }
+    tooltip
 }
 
 pub(crate) fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
@@ -58,10 +166,10 @@ pub(crate) fn initialize(app: &tauri::App) -> Result<(), Box<dyn std::error::Err
     let refresh_item = MenuItem::with_id(app, "refresh", "刷新用量", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &refresh_item, &quit])?;
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
+    let initial = crate::model::initial();
     TrayIconBuilder::with_id("usage-tray")
-        .icon(icon)
-        .tooltip("Win CodexBar · AI 用量")
+        .icon(quota_image(&initial))
+        .tooltip(tray_tooltip(&initial))
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
