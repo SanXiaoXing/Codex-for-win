@@ -35,6 +35,7 @@ pub fn run() {
             commands::save_trae_authorization,
             commands::open_trae_dashboard,
             commands::open_atomcode_page,
+            crate::foreground::get_foreground_provider,
             crate::window::set_ball_mode
         ])
         .run(tauri::generate_context!())

@@ -1,0 +1,15 @@
+Use case: ads-marketing.
+Create a polished Chinese portrait product poster for the real software “Win CodexBar”, approximately 2:3 portrait, high resolution. Editorial typography and refined Windows software campaign art. Based on project: Windows 10/11 tray application monitoring Codex subscription quota, WorkBuddy credits, TRAE token usage, AtomCode CodingPlan; automatic refresh every five minutes, floating indicator, reset times, AtomCode daily check-in.
+Visual identity from actual project website: warm ivory #f4f1e9, ink #15181d, business blue #2563c9, restrained green #3f9d6f. Subtle technical grid fading into paper background. Spacious, beautifully balanced composition, premium quiet precision, no neon, no purple, no robots.
+Top small brand wordmark “Win CodexBar”, with small “WINDOWS 10 / 11”.
+Hero headline large and perfectly readable Chinese, two lines:
+“把 AI 额度”
+“钉在托盘上”
+Second line blue, confident Chinese editorial serif typography; other copy clean sans serif.
+Subheadline exact “四个平台，一个入口。用量与重置时间，一眼看清。”
+Center/lower large hero product visual: a realistic floating translucent Windows acrylic usage popup, front facing with only very subtle perspective, soft dimensional shadows, warm white translucent material. Title “Win CodexBar”, four clearly readable tabs “Codex” “WorkBuddy” “TRAE” “AtomCode”. Selected Codex tab blue. Interior two neatly composed usage rows: “5 小时用量” with “32%” and blue progress bar 32% full; “每周用量” with “18%” and green progress bar 18% full. Simple readable small status “每 5 分钟自动刷新”. No personal emails or real account information. Bottom of illustration a slim elegant cropped Windows tray strip with small blue “32%” tray badge, pointer subtly associates it with floating panel. A small floating companion pill “剩余额度 68%”. Treat this visual as a product interface illustration, not exact screenshot.
+Below visual three compact typographic feature labels with fine line icons, NOT giant cards:
+“托盘常驻” “悬浮查看” “自动刷新”
+Footer with thin divider, provider line “Codex / WorkBuddy / TRAE / AtomCode”.
+Small footer “Windows AI 用量监控工具” and very small “界面数据为示意”.
+Make Chinese text exact, crisp and properly typeset, no extra invented claims, no pricing, no QR code, no download URL, no macOS traffic lights, no meaningless gibberish. Generous margins and restrained layout; a finished promotional poster ready for sharing.

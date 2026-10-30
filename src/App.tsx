@@ -15,7 +15,7 @@ import { CodexUsage } from "./features/usage/CodexUsage";
 import { WorkBuddyUsage } from "./features/usage/WorkBuddyUsage";
 import { TraeUsage } from "./features/usage/TraeUsage";
 import { AtomCodeUsage } from "./features/usage/AtomCodeUsage";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 
@@ -40,6 +40,24 @@ export default function App() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const ballDrag = useRef({ pointerId: -1, startX: 0, startY: 0, dragging: false });
+
+  useEffect(() => {
+    if (!ball || !isTauri()) return;
+    let alive = true;
+    let timer = 0;
+    const followForeground = async () => {
+      try {
+        const provider = await invoke<TabKey | null>("get_foreground_provider");
+        if (alive && provider && tabKeys.includes(provider)) setTab(provider);
+      } catch (error) {
+        console.error("识别当前应用失败", error);
+      } finally {
+        if (alive) timer = window.setTimeout(() => { void followForeground(); }, 1000);
+      }
+    };
+    void followForeground();
+    return () => { alive = false; window.clearTimeout(timer); };
+  }, [ball]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
