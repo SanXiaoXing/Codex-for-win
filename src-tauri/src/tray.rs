@@ -37,9 +37,39 @@ fn quota_levels(snapshot: &UsageSnapshot) -> [Option<u8>; 4] {
     ]
 }
 
+/// Whether the Windows taskbar uses the light theme. Read fresh on every
+/// refresh so a theme switch is picked up with the next icon redraw.
+#[cfg(windows)]
+fn taskbar_is_dark() -> bool {
+    use windows::core::w;
+    use windows::Win32::System::Registry::{
+        RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD,
+    };
+    let mut value = 1_u32;
+    let mut size = std::mem::size_of::<u32>() as u32;
+    let status = unsafe {
+        RegGetValueW(
+            HKEY_CURRENT_USER,
+            w!("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
+            w!("SystemUsesLightTheme"),
+            RRF_RT_REG_DWORD,
+            None,
+            Some(&mut value as *mut u32 as *mut _),
+            Some(&mut size),
+        )
+    };
+    // Missing key or read failure: assume the (more common) dark taskbar.
+    status.is_ok() && value == 0
+}
+
+#[cfg(not(windows))]
+fn taskbar_is_dark() -> bool {
+    true
+}
+
 fn quota_image(snapshot: &UsageSnapshot) -> tauri::image::Image<'static> {
     tauri::image::Image::new_owned(
-        render_quota_icon(quota_levels(snapshot)),
+        render_quota_icon(quota_levels(snapshot), taskbar_is_dark()),
         ICON_SIZE,
         ICON_SIZE,
     )
